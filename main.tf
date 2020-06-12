@@ -75,13 +75,13 @@ resource "azurerm_availability_set" "avset" {
 }
 
 resource "azurerm_virtual_machine" "test" {
- count                 = 2
+ count                 = var.vmcount
  name                  = "acctvm${count.index}"
  location              = azurerm_resource_group.test.location
  availability_set_id   = azurerm_availability_set.avset.id
  resource_group_name   = azurerm_resource_group.test.name
  network_interface_ids = [element(azurerm_network_interface.test.*.id, count.index)]
- vm_size               = "Standard_DS1_v2"
+ vm_size               = var.vmsize
 
  # Uncomment this line to delete the OS disk automatically when deleting the VM
  # delete_os_disk_on_termination = true
@@ -109,7 +109,7 @@ resource "azurerm_virtual_machine" "test" {
    managed_disk_type = "Standard_LRS"
    create_option     = "Empty"
    lun               = 0
-   disk_size_gb      = "1023"
+   disk_size_gb      = var.ddsize
  }
 
  storage_data_disk {
@@ -121,13 +121,17 @@ resource "azurerm_virtual_machine" "test" {
  }
 
  os_profile {
-   computer_name  = "hostname"
-   admin_username = "testadmin"
-   admin_password = "Password1234!"
+   computer_name  = var.vhostname
+   admin_username = var.admuser
+   admin_password = var.admpass
  }
 
  os_profile_linux_config {
-   disable_password_authentication = false
+   disable_password_authentication = true
+   ssh_keys {
+       path     = "/home/"azurerm_virtual_machine.test.os_profile.admin_username"/.ssh/authorized_keys"
+       key_data = var.sshpubkeydata
+    }
  }
 
  tags = var.tags
@@ -140,7 +144,7 @@ resource "azurerm_virtual_machine" "test" {
 resource "azurerm_public_ip" "jumpbox" {
  name                         = "jumpbox-public-ip"
  location                     = var.location
- resource_group_name          = azurerm_resource_group.vmss.name
+ resource_group_name          = azurerm_resource_group.test.name
  allocation_method = "Static"
  domain_name_label            = "${random_string.fqdn.result}-ssh"
  tags                         = var.tags
@@ -149,11 +153,11 @@ resource "azurerm_public_ip" "jumpbox" {
 resource "azurerm_network_interface" "jumpbox" {
  name                = "jumpbox-nic"
  location            = var.location
- resource_group_name = azurerm_resource_group.vmss.name
+ resource_group_name = azurerm_resource_group.test.name
 
  ip_configuration {
    name                          = "IPConfiguration"
-   subnet_id                     = azurerm_subnet.vmss.id
+   subnet_id                     = azurerm_subnet.test.id
    private_ip_address_allocation = "dynamic"
    public_ip_address_id          = azurerm_public_ip.jumpbox.id
  }
@@ -164,7 +168,7 @@ resource "azurerm_network_interface" "jumpbox" {
 resource "azurerm_virtual_machine" "jumpbox" {
  name                  = "jumpbox"
  location              = var.location
- resource_group_name   = azurerm_resource_group.vmss.name
+ resource_group_name   = azurerm_resource_group.test.name
  network_interface_ids = [azurerm_network_interface.jumpbox.id]
  vm_size               = "Standard_DS1_v2"
 

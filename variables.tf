@@ -29,3 +29,31 @@ variable "admin_user" {
 variable "admin_password" {
    description = "Default password for admin account"
 }
+
+variable "vmcount" {
+  description = "number of vms to deploy"
+}
+
+variable "vmsize" {
+  description = "Azure vm model reference"
+}
+
+variable "ddsize" {
+  description = "vm managed disk size"
+}
+
+variable "vhostname" {
+  description = "vm hostname"
+}
+
+variable "admuser" {
+  description = "local vm admin account username"
+}
+
+variable "admpass" {
+  description = "local vm admin account password"
+}
+
+variable "sshpubkeydata" {
+  description = "ssh public key data"
+}
