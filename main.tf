@@ -122,14 +122,14 @@ resource "azurerm_virtual_machine" "test" {
 
  os_profile {
    computer_name  = var.vhostname
-   admin_username = var.admuser
+   admin_username = xinity
    admin_password = var.admpass
  }
 
  os_profile_linux_config {
    disable_password_authentication = true
    ssh_keys {
-       path     = "/home/"azurerm_virtual_machine.test.os_profile.admin_username"/.ssh/authorized_keys"
+       path     = "/home/xinity/.ssh/authorized_keys"
        key_data = var.sshpubkeydata
     }
  }
